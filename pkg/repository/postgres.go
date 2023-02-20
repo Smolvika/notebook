@@ -3,7 +3,12 @@ package repository
 import (
 	"fmt"
 	"github.com/jmoiron/sqlx"
-	//_ "github.com/lib/pq"
+)
+
+const (
+	usersTable      = "users"
+	notesTable      = "notes"
+	usersNotesTable = "users_notes"
 )
 
 type Config struct {

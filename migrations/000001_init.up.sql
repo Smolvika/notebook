@@ -15,7 +15,7 @@ CREATE TABLE notes
 
 CREATE TABLE users_notes
 (
-    id      serial                                           not null unique,
-    user_id int references users (id) on delete cascade      not null,
-    note_id int references notes (id) on delete cascade not null
+    id      serial not null unique,
+    user_id int references users(id) on delete cascade      not null,
+    note_id int references notes(id) on delete cascade not null
 );
