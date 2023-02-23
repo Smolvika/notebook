@@ -11,6 +11,11 @@ type Authorization interface {
 }
 
 type Note interface {
+	Create(userId int, note notebook.Note) (int, error)
+	GetAll(userId int) ([]notebook.Note, error)
+	GetById(userId, noteId int) (notebook.Note, error)
+	Delete(userId, noteId int) error
+	Update(userId, noteId int, input notebook.UpdateNoteInput) error
 }
 
 type Repository struct {
@@ -21,6 +26,6 @@ type Repository struct {
 func NewRepository(db *sqlx.DB) *Repository {
 	return &Repository{
 		Authorization: NewAuthPostgres(db),
-		Note:          nil,
+		Note:          NewNotePostgres(db),
 	}
 }

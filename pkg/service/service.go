@@ -12,6 +12,11 @@ type Authorization interface {
 }
 
 type Note interface {
+	Create(userId int, note notebook.Note) (int, error)
+	GetAll(userId int) ([]notebook.Note, error)
+	GetById(userId, noteId int) (notebook.Note, error)
+	Delete(userId, noteId int) error
+	Update(userId, noteId int, input notebook.UpdateNoteInput) error
 }
 
 type Service struct {
@@ -22,5 +27,6 @@ type Service struct {
 func NewService(repos *repository.Repository) *Service {
 	return &Service{
 		Authorization: NewAuthService(repos.Authorization),
+		Note:          NewNoteService(repos.Note),
 	}
 }
