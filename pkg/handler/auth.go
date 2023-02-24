@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-func (h *Handler) SignUp(c *gin.Context) {
+func (h *Handler) signUp(c *gin.Context) {
 	var input notebook.User
 	if err := c.BindJSON(&input); err != nil {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
@@ -27,7 +27,7 @@ type singInInput struct {
 	Password string `json:"password" binding:"required"`
 }
 
-func (h *Handler) SignIn(c *gin.Context) {
+func (h *Handler) signIn(c *gin.Context) {
 	var input singInInput
 	if err := c.BindJSON(&input); err != nil {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
