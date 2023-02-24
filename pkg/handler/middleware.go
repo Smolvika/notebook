@@ -9,7 +9,7 @@ import (
 
 const (
 	authorizationHeader = "Authorization"
-	userCtx             = "userId"
+	userCxt             = "useId"
 )
 
 func (h *Handler) userIdentity(c *gin.Context) {
@@ -19,12 +19,8 @@ func (h *Handler) userIdentity(c *gin.Context) {
 		return
 	}
 	headerParts := strings.Split(header, " ")
-	if len(headerParts) != 2 || headerParts[0] != "Bearer" {
+	if len(headerParts) != 2 {
 		newErrorResponse(c, http.StatusUnauthorized, "invalid auth header")
-		return
-	}
-	if len(headerParts[1]) == 0 {
-		newErrorResponse(c, http.StatusUnauthorized, "token is empty")
 		return
 	}
 	useId, err := h.services.Authorization.ParseToken(headerParts[1])
@@ -32,10 +28,10 @@ func (h *Handler) userIdentity(c *gin.Context) {
 		newErrorResponse(c, http.StatusUnauthorized, err.Error())
 		return
 	}
-	c.Set(userCtx, useId)
+	c.Set(userCxt, useId)
 }
 func getUserId(c *gin.Context) (int, error) {
-	id, ok := c.Get(userCtx)
+	id, ok := c.Get(userCxt)
 	if !ok {
 		newErrorResponse(c, http.StatusInternalServerError, "user id not found")
 		return 0, errors.New("user id not found")
