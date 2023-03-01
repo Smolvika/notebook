@@ -10,7 +10,7 @@ import (
 func (h *Handler) createNote(c *gin.Context) {
 	userId, err := getUserId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, http.StatusUnauthorized, err.Error())
 		return
 	}
 
@@ -31,14 +31,14 @@ func (h *Handler) createNote(c *gin.Context) {
 	})
 }
 
-type getAllNoteResponse struct {
-	Data []notebook.Note `json:"data"`
-}
+//type getAllNoteResponse struct {
+//	Data []notebook.Note `json:"data"`
+//}
 
 func (h *Handler) getAllNotes(c *gin.Context) {
 	userId, err := getUserId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, http.StatusUnauthorized, err.Error())
 		return
 	}
 	note, err := h.services.Note.GetAll(userId)
@@ -46,16 +46,14 @@ func (h *Handler) getAllNotes(c *gin.Context) {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
-	c.JSON(http.StatusOK, getAllNoteResponse{
-		Data: note,
-	})
+	c.JSON(http.StatusOK, note)
 
 }
 
 func (h *Handler) getNoteById(c *gin.Context) {
 	userId, err := getUserId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, http.StatusUnauthorized, err.Error())
 		return
 	}
 	id, err := strconv.Atoi(c.Param("id"))
@@ -74,7 +72,7 @@ func (h *Handler) getNoteById(c *gin.Context) {
 func (h *Handler) updateNote(c *gin.Context) {
 	userId, err := getUserId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, http.StatusUnauthorized, err.Error())
 		return
 	}
 	id, err := strconv.Atoi(c.Param("id"))
@@ -98,7 +96,7 @@ func (h *Handler) updateNote(c *gin.Context) {
 func (h *Handler) deleteNote(c *gin.Context) {
 	userId, err := getUserId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, http.StatusUnauthorized, err.Error())
 		return
 	}
 	id, err := strconv.Atoi(c.Param("id"))
