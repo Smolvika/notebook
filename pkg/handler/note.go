@@ -31,10 +31,6 @@ func (h *Handler) createNote(c *gin.Context) {
 	})
 }
 
-//type getAllNoteResponse struct {
-//	Data []notebook.Note `json:"data"`
-//}
-
 func (h *Handler) getAllNotes(c *gin.Context) {
 	userId, err := getUserId(c)
 	if err != nil {
@@ -85,7 +81,7 @@ func (h *Handler) updateNote(c *gin.Context) {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
-	if err := h.services.Update(userId, id, input); err != nil {
+	if err := h.services.Note.Update(userId, id, input); err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}

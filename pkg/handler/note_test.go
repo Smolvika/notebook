@@ -66,7 +66,7 @@ func TestHandler_createNote(t *testing.T) {
 		{
 			name:      "Some data is missing",
 			userInfo:  notebook.UsersNote{UserId: 1},
-			inputBody: `{"data":"20.02"}`,
+			inputBody: `{"date":"20.02"}`,
 			inputUser: notebook.Note{
 				Date: "20.02",
 			},
@@ -99,7 +99,7 @@ func TestHandler_createNote(t *testing.T) {
 			testCase.mockBehavior(note, testCase.userInfo.UserId, testCase.inputUser)
 
 			services := &service.Service{Note: note}
-			handler := NewHandler(services)
+			handler := New(services)
 
 			//Test Server
 			gin.SetMode(gin.ReleaseMode)
@@ -183,7 +183,7 @@ func TestHandler_getAllNotes(t *testing.T) {
 			testCase.mockBehavior(note, testCase.userInfo.UserId)
 
 			services := &service.Service{Note: note}
-			handler := NewHandler(services)
+			handler := New(services)
 
 			//Test Server
 			gin.SetMode(gin.ReleaseMode)
@@ -280,7 +280,7 @@ func TestHandler_getNoteById(t *testing.T) {
 			testCase.mockBehavior(note, testCase.userInfo.UserId, testCase.userInfo.NotesId)
 
 			services := &service.Service{Note: note}
-			handler := NewHandler(services)
+			handler := New(services)
 
 			//Test Server
 			gin.SetMode(gin.ReleaseMode)
@@ -373,19 +373,22 @@ func TestHandler_updateNote(t *testing.T) {
 			expectedStatusCode:   400,
 			expectedResponseBody: `{"message":"invalid id param"}`,
 		},
-		{name: "Service Error",
+		{name: "Some Data Is Missing",
+			userInfo:             notebook.UsersNote{UserId: 1, NotesId: 1},
+			Id:                   "1",
+			mockBehavior:         func(r *mock_service.MockNote, userId, noteId int, input notebook.UpdateNoteInput) {},
+			expectedStatusCode:   400,
+			expectedResponseBody: `{"message":"EOF"}`,
+		},
+		{name: "There Is No Update",
 			userInfo:  notebook.UsersNote{UserId: 1, NotesId: 1},
 			Id:        "1",
-			inputBody: `{"date":"20.03","description":"не покупать корм"}`,
-			inputUser: notebook.UpdateNoteInput{
-				Date:        &da,
-				Description: &de,
-			},
+			inputBody: `{}`,
 			mockBehavior: func(r *mock_service.MockNote, userId, noteId int, input notebook.UpdateNoteInput) {
-				r.EXPECT().Update(userId, noteId, input).Return(errors.New("service error"))
+				r.EXPECT().Update(userId, noteId, input).Return(errors.New("update structure has no values"))
 			},
 			expectedStatusCode:   500,
-			expectedResponseBody: `{"message":"service error"}`,
+			expectedResponseBody: `{"message":"update structure has no values"}`,
 		},
 	}
 	for _, testCase := range testTable {
@@ -398,7 +401,7 @@ func TestHandler_updateNote(t *testing.T) {
 			testCase.mockBehavior(note, testCase.userInfo.UserId, testCase.userInfo.NotesId, testCase.inputUser)
 
 			services := &service.Service{Note: note}
-			handler := NewHandler(services)
+			handler := New(services)
 
 			//Test Server
 			gin.SetMode(gin.ReleaseMode)
@@ -416,6 +419,100 @@ func TestHandler_updateNote(t *testing.T) {
 			//Test Request
 			w := httptest.NewRecorder()
 			req := httptest.NewRequest(http.MethodPut, "/api/notes/"+testCase.Id, bytes.NewBufferString(testCase.inputBody))
+
+			//Perform Request
+			r.ServeHTTP(w, req)
+
+			//Assert
+			assert.Equal(t, testCase.expectedStatusCode, w.Code)
+			assert.Equal(t, testCase.expectedResponseBody, w.Body.String())
+
+		})
+	}
+
+}
+func TestHandler_deleteNote(t *testing.T) {
+	type mackBehavior func(r *mock_service.MockNote, userId, noteId int)
+	testTable := []struct {
+		name                 string
+		userInfo             notebook.UsersNote
+		Id                   string
+		mockBehavior         mackBehavior
+		expectedStatusCode   int
+		expectedResponseBody string
+	}{
+
+		{name: "Ok",
+			userInfo: notebook.UsersNote{UserId: 1, NotesId: 1},
+			Id:       "1",
+			mockBehavior: func(r *mock_service.MockNote, userId, noteId int) {
+				r.EXPECT().Delete(userId, noteId).Return(nil)
+			},
+			expectedStatusCode:   200,
+			expectedResponseBody: `{"status":"ok"}`,
+		},
+
+		{name: "userId Is Missing",
+			userInfo:             notebook.UsersNote{UserId: -1, NotesId: 1},
+			Id:                   "1",
+			mockBehavior:         func(r *mock_service.MockNote, userId, noteId int) {},
+			expectedStatusCode:   401,
+			expectedResponseBody: `{"message":"user id not found"}`,
+		},
+		{
+			name:                 "userId Invalid Type",
+			userInfo:             notebook.UsersNote{UserId: 0, NotesId: 1},
+			Id:                   "0",
+			mockBehavior:         func(r *mock_service.MockNote, userId, noteId int) {},
+			expectedStatusCode:   401,
+			expectedResponseBody: `{"message":"user id is of invalid type"}`,
+		},
+		{
+			name:                 "Invalid id Param",
+			userInfo:             notebook.UsersNote{UserId: 1, NotesId: 1},
+			Id:                   "rrr",
+			mockBehavior:         func(r *mock_service.MockNote, userId, noteId int) {},
+			expectedStatusCode:   400,
+			expectedResponseBody: `{"message":"invalid id param"}`,
+		},
+		{name: "Service Error",
+			userInfo: notebook.UsersNote{UserId: 1, NotesId: 1},
+			Id:       "1",
+			mockBehavior: func(r *mock_service.MockNote, userId, noteId int) {
+				r.EXPECT().Delete(userId, noteId).Return(errors.New("update structure has no values"))
+			},
+			expectedStatusCode:   500,
+			expectedResponseBody: `{"message":"update structure has no values"}`,
+		},
+	}
+	for _, testCase := range testTable {
+		t.Run(testCase.name, func(t *testing.T) {
+			//Init Deps
+			c := gomock.NewController(t)
+			defer c.Finish()
+
+			note := mock_service.NewMockNote(c)
+			testCase.mockBehavior(note, testCase.userInfo.UserId, testCase.userInfo.NotesId)
+
+			services := &service.Service{Note: note}
+			handler := New(services)
+
+			//Test Server
+			gin.SetMode(gin.ReleaseMode)
+			r := gin.New()
+			r.DELETE("/api/notes/:id", func(c *gin.Context) {
+				if testCase.userInfo.UserId == 0 {
+					c.Set(userCtx, "some wrong info")
+				} else if testCase.userInfo.UserId < 0 {
+					c.Set("err", testCase.userInfo.UserId)
+				} else {
+					c.Set(userCtx, testCase.userInfo.UserId)
+				}
+			}, handler.deleteNote)
+
+			//Test Request
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest(http.MethodDelete, "/api/notes/"+testCase.Id, nil)
 
 			//Perform Request
 			r.ServeHTTP(w, req)

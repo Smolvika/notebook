@@ -59,12 +59,12 @@ func (p *NotePostgres) Update(userId, noteId int, input notebook.UpdateNoteInput
 	argId := 1
 	if input.Date != nil {
 		setValues = append(setValues, fmt.Sprintf("date=$%d", argId))
-		args = append(args, *input.Date)
+		args = append(args, input.Date)
 		argId++
 	}
 	if input.Description != nil {
 		setValues = append(setValues, fmt.Sprintf("description=$%d", argId))
-		args = append(args, *input.Description)
+		args = append(args, input.Description)
 		argId++
 	}
 	setQuery := strings.Join(setValues, ", ")

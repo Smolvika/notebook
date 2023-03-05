@@ -10,8 +10,8 @@ type AuthPostgres struct {
 	db *sqlx.DB
 }
 
-func NewAuthPostgres(bd *sqlx.DB) *AuthPostgres {
-	return &AuthPostgres{db: bd}
+func NewAuthPostgres(db *sqlx.DB) *AuthPostgres {
+	return &AuthPostgres{db: db}
 }
 
 func (p *AuthPostgres) CreateUser(user notebook.User) (int, error) {

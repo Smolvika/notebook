@@ -23,7 +23,7 @@ type Repository struct {
 	Note
 }
 
-func NewRepository(db *sqlx.DB) *Repository {
+func New(db *sqlx.DB) *Repository {
 	return &Repository{
 		Authorization: NewAuthPostgres(db),
 		Note:          NewNotePostgres(db),

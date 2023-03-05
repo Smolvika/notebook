@@ -26,7 +26,7 @@ type Service struct {
 	Note
 }
 
-func NewService(repos *repository.Repository) *Service {
+func New(repos *repository.Repository) *Service {
 	return &Service{
 		Authorization: NewAuthService(repos.Authorization),
 		Note:          NewNoteService(repos.Note),

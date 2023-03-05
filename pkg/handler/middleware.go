@@ -27,12 +27,12 @@ func (h *Handler) userIdentity(c *gin.Context) {
 		newErrorResponse(c, http.StatusUnauthorized, "token is empty")
 		return
 	}
-	useId, err := h.services.Authorization.ParseToken(headerParts[1])
+	userId, err := h.services.Authorization.ParseToken(headerParts[1])
 	if err != nil {
 		newErrorResponse(c, http.StatusUnauthorized, err.Error())
 		return
 	}
-	c.Set(userCtx, useId)
+	c.Set(userCtx, userId)
 }
 func getUserId(c *gin.Context) (int, error) {
 	id, ok := c.Get(userCtx)
@@ -45,4 +45,17 @@ func getUserId(c *gin.Context) (int, error) {
 	}
 	return idInt, nil
 
+}
+
+type RecoveryResponse struct {
+	Error string `json:"error"`
+}
+
+func (h *Handler) recovery(c *gin.Context) {
+	defer func() {
+		err := recover()
+		if err != nil {
+			newErrorResponse(c, http.StatusInternalServerError, "There was an internal server error")
+		}
+	}()
 }
